@@ -1,4 +1,4 @@
-<<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
@@ -14,11 +14,24 @@
 </head>
 <body>
     <div>
-        <h2>Blog</h2>
-        <a href="/index">Home</a>
-        <a href="/login">Login</a>
+        <p>
+            Blog:
+            <a href={{url_for("index")}}>Home</a>
+            <a href={{url_for("login")}}>Login</a>
+        </p>
     </div>
-    {%blocl content%}
+    <hr>
+    {%with msg=get_flashed_massages%}
+    {%if msg%}
+    <ul>
+        {%for i in msg%}
+        <li>{{i}}</li>
+        {%endfor%}
+    </ul>
+    {%endif%}
+    {%endwith%}
+
+    {%block content%}
     {%endblock%}    
 </body>
 </html>

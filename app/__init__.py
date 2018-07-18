@@ -1,5 +1,5 @@
 from flask import Flask
-from config import Config
+from config import *
 apli = Flask(__name__)
-apli.config.from_object(Config)
+apli.config["SECRET_KEY"] = "sieuj3@Sjwq1"
 from app import routes
