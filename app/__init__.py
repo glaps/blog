@@ -13,4 +13,4 @@ db = SQLAlchemy(apli)
 migrate = Migrate(apli, db)
 login = LoginManager(apli)
 login.login_view = 'login'
-from app import routes, models
+from app import routes, models, errors
