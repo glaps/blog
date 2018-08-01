@@ -1,17 +1,54 @@
 import os
-basedir = os.path.abspath(os.path.dirname(__file__))
+import logging
+from logging.handlers import SMTPHandler, RotatingFileHandler
+from config import Config
 from flask import Flask
 #from config import *
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
+from flask_mail import Mail
 apli = Flask(__name__)
-apli.config["SECRET_KEY"] = "sieuj3@Sjwq1"
-apli.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///' + os.path.join(basedir, 'app.db')
+#basedir = os.path.abspath(os.path.dirname(__file__))
+""" apli.config["SECRET_KEY"] = "sieuj3@Sjwq1"
+apli.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///' + os.path.join(basedir, 'apli.db')
 apli.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-apli.config['POSTS_PER_PAGE'] = 25
+apli.config['POSTS_PER_PAGE'] = 25 """
+apli.config.from_object(Config)
+mail = Mail(apli)
 db = SQLAlchemy(apli)
 migrate = Migrate(apli, db)
 login = LoginManager(apli)
 login.login_view = 'login'
+
+if not apli.debug:
+    if apli.config['MAIL_SERVER']:
+        auth = None
+        if apli.config['MAIL_USERNAME'] or apli.config['MAIL_PASSWORD']:
+            auth = (apli.config['MAIL_USERNAME'], apli.config['MAIL_PASSWORD'])
+        secure = None
+        if apli.config['MAIL_USE_TLS']:
+            secure = ()
+        mail_handler = SMTPHandler(
+            mailhost=(apli.config['MAIL_SERVER'], apli.config['MAIL_PORT']),
+            fromaddr='no-reply@' + apli.config['MAIL_SERVER'],
+            toaddrs=apli.config['ADMINS'], subject='Microblog Failure',
+            credentials=auth, secure=secure)
+        mail_handler.setLevel(logging.ERROR)
+        apli.logger.addHandler(mail_handler)
+
+    if not os.path.exists('logs'):
+        os.mkdir('logs')
+    file_handler = RotatingFileHandler('logs/microblog.log', maxBytes=10240,backupCount=10)
+    file_handler.setFormatter(logging.Formatter(
+        '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
+    file_handler.setLevel(logging.INFO)
+    apli.logger.addHandler(file_handler)
+
+    apli.logger.setLevel(logging.INFO)
+    apli.logger.info('Microblog startup')
+
+
+
+
 from app import routes, models, errors
